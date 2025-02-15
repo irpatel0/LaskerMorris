@@ -14,6 +14,9 @@ opp_player_positions = []
 time_limit = 4.75
 Timer = None
 
+#Set branching factor for Tapered Search
+branching_factor = 7
+
 def iterative_deepening(board, pieces, curr_pos, opp_pos, limit = time_limit):
     global Timer
     Timer = time.time() + limit
@@ -45,7 +48,7 @@ def minimax(board, pieces, curr_pos, opp_pos, depth, alpha, beta, maximizing):
 
     if maximizing:
         max_score = float('-inf')
-        for move in generate_moves(curr_player, pieces, board, curr_pos, opp_pos):
+        for move in order_moves(generate_moves(curr_player, pieces, board, curr_pos, opp_pos), board, pieces, curr_pos, opp_pos, depth, True):
             iterate_board = board.copy()
             iterate_pieces = pieces.copy()
             iterate_curr_pos = curr_pos.copy()
@@ -70,7 +73,7 @@ def minimax(board, pieces, curr_pos, opp_pos, depth, alpha, beta, maximizing):
         return max_score, next_best
     else:
         min_score = float('inf')
-        for move in generate_moves(other_player, pieces, board, opp_pos, curr_pos):
+        for move in order_moves(generate_moves(other_player, pieces, board, opp_pos, curr_pos), board, pieces, curr_pos, opp_pos, depth, False):
             iterate_board = board.copy()
             iterate_pieces = pieces.copy()
             iterate_curr_pos = curr_pos.copy()
@@ -93,6 +96,45 @@ def minimax(board, pieces, curr_pos, opp_pos, depth, alpha, beta, maximizing):
             if beta <= alpha:
                 break
         return min_score, next_best
+    
+def order_moves(moves, board, pieces, curr_pos, opp_pos, depth, maximizing):
+    scored_moves = []
+    for move in moves:
+
+        iterate_board = board.copy()
+        iterate_pieces = pieces.copy()
+        iterate_curr_pos = curr_pos.copy()
+        iterate_opp_pos = opp_pos.copy()
+
+        iterate_board[move[1]] = curr_player if maximizing else other_player
+        if maximizing:
+            iterate_curr_pos.append(move[1])
+        else:
+            iterate_opp_pos.append(move[1])
+        if move[0] in ("h1", "h2"):
+            iterate_pieces[curr_player if maximizing else other_player] -= 1
+        else:
+            if maximizing:
+                iterate_board[move[0]] = None
+                iterate_curr_pos.remove(move[0])
+            else:
+                iterate_board[move[0]] = None
+                iterate_opp_pos.remove(move[0])
+        if move[2] != "r0":
+            iterate_board[move[2]] = None
+            if maximizing:
+                iterate_opp_pos.remove(move[2])
+            else:
+                iterate_curr_pos.remove(move[2])
+        
+        score = dynamic_eval(iterate_board, iterate_pieces, iterate_curr_pos, iterate_opp_pos, 0)
+        scored_moves.append((move, score))
+    
+    scored_moves.sort(key=lambda move: move[1], reverse=maximizing)
+    # Allow less moves to pass through the deeper the search is
+    top_moves = [m for m, s in scored_moves][:(branching_factor)]
+    return top_moves
+
     
 def static_eval(board, pieces, curr_pos, opp_pos, depth, logging):
     player_board_count = len(curr_pos)

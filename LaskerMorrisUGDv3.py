@@ -78,6 +78,8 @@ def static_eval(board, pieces, curr_pos, opp_pos, depth, logging):
         return -1000 - depth, True
     elif (pieces[other_player] + other_board_count) < 3:
         return 1000 + depth, True
+    elif move_possible(other_player, pieces, board, opp_pos) == False:
+        return 1000 + depth, True
     else:
         return 0, False
 

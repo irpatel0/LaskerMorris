@@ -2,8 +2,8 @@ from constants import positions, mills, neighbors
 
 hand_pieces = {"blue": 10, "orange": 10}
 
-curr_player = "blue"
-other_player = "orange"
+curr_player = "orange"
+other_player = "blue"
 
 # Create a dictionary with board positions as keys
 board = {pos: None for pos in positions}
@@ -66,7 +66,7 @@ def static_eval(board, pieces, depth, logging):
         if board[pos] == other_player:
             other_board_count += 1
     if (pieces[curr_player] + player_board_count) < 3:
-        return -1000 + depth, True
+        return -1000 - depth, True
     elif (pieces[other_player] + other_board_count) < 3:
         return 1000 + depth, True
     else:
@@ -154,11 +154,18 @@ def valid_removals(opponent, board):
     return opp_not_mill
 
 
-# board["a7"] = "orange"
-# board["d7"] = "orange"
-# board["c4"] = "blue"
+# board["c3"] = "orange"
+# board["c4"] = "orange"
+# board["c5"] = "orange"
+# board["a4"] = "blue"
+# board["b2"] = "blue"
+# board["d2"] = "blue"
+# board["f2"] = "blue"
+# board["f4"] = "blue"
+# board["d6"] = "blue"
+
 # print(generate_moves(curr_player, hand_pieces, board))
-# score, next_move = minimax(board, hand_pieces, 2, float('-inf'), float('inf'), True)
+# score, next_move = minimax(board, hand_pieces, 7, float('-inf'), float('inf'), True)
 # print(score, next_move)
 
 def list_to_command(move):
@@ -166,7 +173,7 @@ def list_to_command(move):
 
 def move_update(hand):
     # Your move logic here
-    score, next_move = minimax(board, hand_pieces, 5, float('-inf'), float('inf'), True)
+    score, next_move = minimax(board, hand_pieces, 4, float('-inf'), float('inf'), True)
     
     # Send move to referee and update board
     print(list_to_command(next_move), flush=True)

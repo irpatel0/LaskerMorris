@@ -1,16 +1,41 @@
+import time
 from constants import positions, mills, neighbors
 
 hand_pieces = {"blue": 10, "orange": 10}
-
-curr_player = "orange"
-other_player = "blue"
+curr_player = "blue"
+other_player = "orange"
 
 # Create a dictionary with board positions as keys
 board = {pos: None for pos in positions}
 curr_player_positions = []
 opp_player_positions = []
 
+#Create time-limit variable and time tracker
+time_limit = 4.8
+Timer = None
+
+def iterative_deepening(board, pieces, curr_pos, opp_pos, limit = time_limit):
+    global Timer
+    Timer = time.time() + limit
+    best_move = []
+    max_score = float('-inf')
+    depth = 1
+
+    while True:
+        try:
+            score, next_move = minimax(board, pieces, curr_pos, opp_pos, depth, float('-inf'), float('inf'), True)
+
+            best_move = next_move
+            max_score = score
+        except Exception:
+            break
+        # print(depth, max_score, best_move)
+        depth += 1
+    return max_score, best_move
+
 def minimax(board, pieces, curr_pos, opp_pos, depth, alpha, beta, maximizing):
+    if time.time() > Timer:
+        raise Exception("Time limit reached")
     next_best = []
     score, game_over = static_eval(board, pieces, curr_pos, opp_pos, depth, False)
     if game_over:
@@ -78,6 +103,8 @@ def static_eval(board, pieces, curr_pos, opp_pos, depth, logging):
         return -1000 - depth, True
     elif (pieces[other_player] + other_board_count) < 3:
         return 1000 + depth, True
+    elif move_possible(other_player, pieces, board, opp_pos) == False:
+        return 1000 + depth, True
     else:
         return 0, False
 
@@ -94,11 +121,11 @@ def dynamic_eval(board, pieces, curr_pos, opp_pos, depth):
     return score
 
 #IMPORTANT: this function depends on perspective of the player
-def move_possible(player, pieces, board, curr_pos):
-    player_board_count = len(curr_pos)
+def move_possible(player, pieces, board, positions):
+    player_board_count = len(positions)
     if (pieces[player] + player_board_count) <= 3 or pieces[player] > 0:
         return True
-    for source in curr_pos:
+    for source in positions:
         for target in neighbors[source]:
             if board[target] == None:
                 return True
@@ -162,12 +189,8 @@ def valid_removals(opponent, board, opp_positions):
         return opp_positions
     return opp_not_mill
 
-
-# board["b2"] = "orange"
-# curr_player_positions.append("b2")
-
 # print(generate_moves(curr_player, hand_pieces, board, curr_player_positions, opp_player_positions))
-# score, next_move = minimax(board, hand_pieces, curr_player_positions, opp_player_positions, 7, float('-inf'), float('inf'), True)
+# score, next_move = iterative_deepening(board, hand_pieces, curr_player_positions, opp_player_positions)
 # print(score, next_move)
 
 def list_to_command(move):
@@ -175,7 +198,7 @@ def list_to_command(move):
 
 def move_update(hand):
     # Your move logic here
-    score, next_move = minimax(board, hand_pieces, curr_player_positions, opp_player_positions, 4, float('-inf'), float('inf'), True)
+    score, next_move = iterative_deepening(board, hand_pieces, curr_player_positions, opp_player_positions)
     
     # Send move to referee and update board
     print(list_to_command(next_move), flush=True)

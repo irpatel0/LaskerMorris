@@ -5,17 +5,23 @@ from constants import positions, mills, neighbors
 # Global variables for the game
 board = {pos: None for pos in positions} # Create a dictionary with board positions as keys
 hand_pieces = {"blue": 10, "orange": 10}
-curr_player = ""
-other_player = ""
 curr_player_positions = []
 opp_player_positions = []
+curr_player = ""
+other_player = ""
+
+#Stalemate detection
+STALEMATE_THRESHOLD = 20
+stalemate_counter = 0
+opp_prev_pieces_remaining = 10
+prev_pieces_remaining = 10
 
 #Create time-limit variable and time tracker
-time_limit = 4.75
+TIME_LIMIT = 4.75
 Timer = None
 
 #Iterative deepening minimax algorithm
-def iterative_deepening(board, pieces, curr_pos, opp_pos, limit = time_limit):
+def iterative_deepening(board, pieces, curr_pos, opp_pos, limit = TIME_LIMIT):
     global Timer
     #Set the time limit
     Timer = time.time() + limit
@@ -116,25 +122,25 @@ def static_eval(board, pieces, curr_pos, opp_pos, depth, logging):
     other_board_count = len(opp_pos)
     if (pieces[curr_player] + player_board_count) < 3:
         if logging:
-            print(f"Game over, {curr_player} has less than 3 pieces", flush=True)
+            print(f"Game over, {curr_player} has less than 3 pieces!", flush=True)
             exit(0)
         else:
             return -1000 - depth, True
     elif move_possible(curr_player, pieces, board, curr_pos) == False:
         if logging:
-            print(f"Game over, {curr_player} has no valid moves left", flush=True)
+            print(f"Game over, {curr_player} has no valid moves left!", flush=True)
             exit(0)
         else:
             return -1000 - depth, True
     elif (pieces[other_player] + other_board_count) < 3:
         if logging:
-            print(f"Game over, {other_player} has less than 3 pieces", flush=True)
+            print(f"Game over, {other_player} has less than 3 pieces!", flush=True)
             exit(0)
         else:
             return 1000 + depth, True
     elif move_possible(other_player, pieces, board, opp_pos) == False:
         if logging:
-            print(f"Game over, {other_player} has no valid moves left", flush=True)
+            print(f"Game over, {other_player} has no valid moves left!", flush=True)
             exit(0)
         else:
             return 1000 + depth, True
@@ -240,6 +246,7 @@ def list_to_command(move):
 
 #Create a move with minimax, and update the board accordingly. Deliver the move to the referee
 def move_update(hand):
+    global stalemate_counter, opp_prev_pieces_remaining
     # Your move logic here
     score, next_move = iterative_deepening(board, hand_pieces, curr_player_positions, opp_player_positions)
     
@@ -255,10 +262,19 @@ def move_update(hand):
     if next_move[2] != "r0":
         board[next_move[2]] = None
         opp_player_positions.remove(next_move[2])
+    if opp_prev_pieces_remaining == hand_pieces[other_player] + len(opp_player_positions):
+        stalemate_counter += 1
+    else:
+        stalemate_counter = 0
+        opp_prev_pieces_remaining = hand_pieces[other_player] + len(opp_player_positions)
+    if stalemate_counter >= STALEMATE_THRESHOLD:
+        print(f"Draw game! Players have not taken pieces in the past {STALEMATE_THRESHOLD} moves!", flush=True)
+        exit(0)
+    
 
 def main():
     # Read initial color/symbol
-    global curr_player, other_player, board
+    global curr_player, other_player, board, stalemate_counter, prev_pieces_remaining
     curr_player = input().strip()
     if curr_player == "blue":
         other_player = "orange"
@@ -286,7 +302,7 @@ def main():
             game_input = input().strip().split()
             validate_move = tuple(game_input)
             if validate_move not in generate_moves(other_player, hand_pieces, board, opp_player_positions, curr_player_positions):
-                print(f"Opponent played an invalid move ({game_input})", flush=True)
+                print(f"Opponent played an invalid move ({game_input})!", flush=True)
                 exit(0)
             board[game_input[1]] = other_player
             opp_player_positions.append(game_input[1])
@@ -298,6 +314,14 @@ def main():
             if game_input[2] != "r0":
                 board[game_input[2]] = None
                 curr_player_positions.remove(game_input[2])
+            if prev_pieces_remaining == hand_pieces[curr_player] + len(curr_player_positions):
+                stalemate_counter += 1
+            else:
+                stalemate_counter = 0
+                prev_pieces_remaining = hand_pieces[curr_player] + len(curr_player_positions)
+            if stalemate_counter >= STALEMATE_THRESHOLD:
+                print(f"Draw game! Players have not taken pieces in the past {STALEMATE_THRESHOLD} moves!", flush=True)
+                exit(0)
 
             # Your move logic here
             #Check if the game is over after updating the board with opponent's move
@@ -318,7 +342,6 @@ if __name__ == "__main__":
 # score, next_move = iterative_deepening(board, hand_pieces, curr_player_positions, opp_player_positions)
 # print(score, next_move)
 
-#TODO: Add stalemate detection
 #TODO: Improve heuristic
 #TODO: Make eval function == utility function ???
 #TODO: Choose nodes to not expand ??? (V5 proved that the time it takes to analyze node value is not worth it)

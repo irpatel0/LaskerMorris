@@ -7,8 +7,8 @@ board = {pos: None for pos in positions} # Create a dictionary with board positi
 hand_pieces = {"blue": 10, "orange": 10}
 curr_player_positions = []
 opp_player_positions = []
-curr_player = ""
-other_player = ""
+curr_player = "blue"
+other_player = "orange"
 
 #Stalemate detection
 STALEMATE_THRESHOLD = 20
@@ -33,7 +33,7 @@ def iterative_deepening(board, pieces, curr_pos, opp_pos, limit = TIME_LIMIT):
     #While time remains, call minimax with increasing depth, using past iteration as a backup
     while True:
         try:
-            score, next_move = minimax(board, pieces, curr_pos, opp_pos, depth, float('-inf'), float('inf'), True)
+            score, next_move = minimax(board, pieces, curr_pos, opp_pos, stalemate_counter, depth, float('-inf'), float('inf'), True)
             best_move = next_move
             max_score = score
         except Exception:
@@ -42,12 +42,12 @@ def iterative_deepening(board, pieces, curr_pos, opp_pos, limit = TIME_LIMIT):
     return max_score, best_move
 
 #Minimax algorithm with alpha-beta pruning
-def minimax(board, pieces, curr_pos, opp_pos, depth, alpha, beta, maximizing):
+def minimax(board, pieces, curr_pos, opp_pos, sm_counter, depth, alpha, beta, maximizing):
     #Check if time limit has been reached
     if time.time() > Timer:
         raise Exception("Time limit reached")
     next_best = []
-    score, game_over = static_eval(board, pieces, curr_pos, opp_pos, depth, False)
+    score, game_over = static_eval(board, pieces, curr_pos, opp_pos, sm_counter, depth, False)
     if game_over:
         return score, next_best
     if depth == 0:
@@ -62,6 +62,8 @@ def minimax(board, pieces, curr_pos, opp_pos, depth, alpha, beta, maximizing):
             iterate_pieces = pieces.copy()
             iterate_curr_pos = curr_pos.copy()
             iterate_opp_pos = opp_pos.copy()
+            num_opp_pieces = iterate_pieces[other_player] + len(iterate_opp_pos)
+            counter = sm_counter
             #Update the copied game with the possible move
             iterate_board[move[1]] = curr_player
             iterate_curr_pos.append(move[1])
@@ -73,8 +75,12 @@ def minimax(board, pieces, curr_pos, opp_pos, depth, alpha, beta, maximizing):
             if move[2] != "r0":
                 iterate_board[move[2]] = None
                 iterate_opp_pos.remove(move[2])
+            if num_opp_pieces == iterate_pieces[other_player] + len(iterate_opp_pos):
+                counter += 1
+            else:
+                counter = 0
             #Recursively call minimax with the possible game
-            score, local_best = minimax(iterate_board, iterate_pieces, iterate_curr_pos, iterate_opp_pos, depth-1, alpha, beta, False)
+            score, local_best = minimax(iterate_board, iterate_pieces, iterate_curr_pos, iterate_opp_pos, counter, depth-1, alpha, beta, False)
             #Track the best move and score found so far
             if score > max_score:
                 max_score = score
@@ -93,6 +99,8 @@ def minimax(board, pieces, curr_pos, opp_pos, depth, alpha, beta, maximizing):
             iterate_pieces = pieces.copy()
             iterate_curr_pos = curr_pos.copy()
             iterate_opp_pos = opp_pos.copy()
+            num_curr_pieces = iterate_pieces[curr_player] + len(iterate_curr_pos)
+            counter = sm_counter
             #Update the copied game with the possible move
             iterate_board[move[1]] = other_player
             iterate_opp_pos.append(move[1])
@@ -104,8 +112,12 @@ def minimax(board, pieces, curr_pos, opp_pos, depth, alpha, beta, maximizing):
             if move[2] != "r0":
                 iterate_board[move[2]] = None
                 iterate_curr_pos.remove(move[2])
+            if num_curr_pieces == iterate_pieces[curr_player] + len(iterate_curr_pos):
+                counter += 1
+            else:
+                counter = 0
             #Recursively call minimax with the possible game
-            score, local_best = minimax(iterate_board, iterate_pieces, iterate_curr_pos, iterate_opp_pos, depth-1, alpha, beta, True)
+            score, local_best = minimax(iterate_board, iterate_pieces, iterate_curr_pos, iterate_opp_pos, sm_counter, depth-1, alpha, beta, True)
             #Track the best move and score found so far
             if score < min_score:
                 min_score = score
@@ -117,7 +129,7 @@ def minimax(board, pieces, curr_pos, opp_pos, depth, alpha, beta, maximizing):
         return min_score, next_best
 
 #Utility function to evaluate the game state and determine if the game is over
-def static_eval(board, pieces, curr_pos, opp_pos, depth, logging):
+def static_eval(board, pieces, curr_pos, opp_pos, counter, depth, logging):
     player_board_count = len(curr_pos)
     other_board_count = len(opp_pos)
     if (pieces[curr_player] + player_board_count) < 3:
@@ -144,6 +156,12 @@ def static_eval(board, pieces, curr_pos, opp_pos, depth, logging):
             exit(0)
         else:
             return 1000 + depth, True
+    elif counter >= STALEMATE_THRESHOLD:
+        if logging:
+            print(f"Draw game! Players have not taken pieces in the past {STALEMATE_THRESHOLD} moves!", flush=True)
+            exit(0)
+        else:
+            return 0, True
     else:
         return 0, False
 
@@ -267,9 +285,8 @@ def move_update(hand):
     else:
         stalemate_counter = 0
         opp_prev_pieces_remaining = hand_pieces[other_player] + len(opp_player_positions)
-    if stalemate_counter >= STALEMATE_THRESHOLD:
-        print(f"Draw game! Players have not taken pieces in the past {STALEMATE_THRESHOLD} moves!", flush=True)
-        exit(0)
+    #Check if the game is over after making a move
+    score, game_over = static_eval(board, hand_pieces, curr_player_positions, opp_player_positions, stalemate_counter, 0, True)
     
 
 def main():
@@ -294,9 +311,6 @@ def main():
                 # Your move logic here
                 move_update(hand)
                 continue
-            
-            #Check if the game is over before reading from opponent
-            score, game_over = static_eval(board, hand_pieces, curr_player_positions, opp_player_positions, 0, True)
 
             # Read opponent's move and update board
             game_input = input().strip().split()
@@ -319,13 +333,10 @@ def main():
             else:
                 stalemate_counter = 0
                 prev_pieces_remaining = hand_pieces[curr_player] + len(curr_player_positions)
-            if stalemate_counter >= STALEMATE_THRESHOLD:
-                print(f"Draw game! Players have not taken pieces in the past {STALEMATE_THRESHOLD} moves!", flush=True)
-                exit(0)
 
             # Your move logic here
             #Check if the game is over after updating the board with opponent's move
-            score, game_over = static_eval(board, hand_pieces, curr_player_positions, opp_player_positions, 0, True)
+            score, game_over = static_eval(board, hand_pieces, curr_player_positions, opp_player_positions, stalemate_counter, 0, True)
             move_update(hand)
 
         except EOFError:
@@ -336,10 +347,11 @@ def main():
 if __name__ == "__main__":
     main()
 
-#Testing
+# Testing
 # print(generate_moves(other_player, hand_pieces, board, curr_player_positions, opp_player_positions))
 # score, game_over = static_eval(board, hand_pieces, curr_player_positions, opp_player_positions, 0, True)
 # score, next_move = iterative_deepening(board, hand_pieces, curr_player_positions, opp_player_positions)
+# score, next_move = minimax(board, hand_pieces, curr_player_positions, opp_player_positions, stalemate_counter, 1, float('-inf'), float('inf'), True)
 # print(score, next_move)
 
 #TODO: Improve heuristic

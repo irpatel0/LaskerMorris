@@ -117,7 +117,7 @@ def minimax(board, pieces, curr_pos, opp_pos, sm_counter, depth, alpha, beta, ma
             else:
                 counter = 0
             #Recursively call minimax with the possible game
-            score, local_best = minimax(iterate_board, iterate_pieces, iterate_curr_pos, iterate_opp_pos, sm_counter, depth-1, alpha, beta, True)
+            score, local_best = minimax(iterate_board, iterate_pieces, iterate_curr_pos, iterate_opp_pos, counter, depth-1, alpha, beta, True)
             #Track the best move and score found so far
             if score < min_score:
                 min_score = score
@@ -284,7 +284,7 @@ def move_update(hand):
     else:
         stalemate_counter = 0
         opp_prev_pieces_remaining = hand_pieces[other_player] + len(opp_player_positions)
-        
+
     #Send move to referee
     print(list_to_command(next_move), flush=True)
     #Check if the game is over after making a move

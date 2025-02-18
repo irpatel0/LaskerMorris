@@ -17,11 +17,12 @@ opp_prev_pieces_remaining = 10
 prev_pieces_remaining = 10
 
 #Create time-limit variable and time tracker
-TIME_LIMIT = 4.75
+TIME_LIMIT = 5
+TIME_LIMIT_SAFETY = TIME_LIMIT - 0.25
 Timer = None
 
 #Iterative deepening minimax algorithm
-def iterative_deepening(board, pieces, curr_pos, opp_pos, limit = TIME_LIMIT):
+def iterative_deepening(board, pieces, curr_pos, opp_pos, limit = TIME_LIMIT_SAFETY):
     global Timer
     #Set the time limit
     Timer = time.time() + limit
@@ -357,5 +358,3 @@ if __name__ == "__main__":
 # print(score, next_move)
 
 #TODO: Improve heuristic
-#TODO: Make eval function == utility function ???
-#TODO: Choose nodes to not expand ??? (V5 proved that the time it takes to analyze node value is not worth it)

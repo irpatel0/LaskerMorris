@@ -51,7 +51,7 @@ def minimax(board, pieces, curr_pos, opp_pos, depth, alpha, beta, maximizing):
     if game_over:
         return score, next_best
     if depth == 0:
-        return dynamic_eval(board, pieces, curr_pos, opp_pos, depth), next_best
+        return heuristic_eval(board, pieces, curr_pos, opp_pos), next_best
 
     if maximizing:
         max_score = float('-inf')
@@ -148,7 +148,7 @@ def static_eval(board, pieces, curr_pos, opp_pos, depth, logging):
         return 0, False
 
 #Evaluation function to determine the score of the game
-def dynamic_eval(board, pieces, curr_pos, opp_pos, depth):
+def heuristic_eval(board, pieces, curr_pos, opp_pos):
     score = 0
     score += pieces[curr_player] + len(curr_pos)
     score -= pieces[other_player] + len(opp_pos)

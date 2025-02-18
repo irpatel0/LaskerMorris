@@ -268,8 +268,7 @@ def move_update(hand):
     # Your move logic here
     score, next_move = iterative_deepening(board, hand_pieces, curr_player_positions, opp_player_positions)
     
-    # Send move to referee and update board
-    print(list_to_command(next_move), flush=True)
+    # Update board with move
     board[next_move[1]] = curr_player
     curr_player_positions.append(next_move[1])
     if next_move[0] == hand:
@@ -285,6 +284,9 @@ def move_update(hand):
     else:
         stalemate_counter = 0
         opp_prev_pieces_remaining = hand_pieces[other_player] + len(opp_player_positions)
+        
+    #Send move to referee
+    print(list_to_command(next_move), flush=True)
     #Check if the game is over after making a move
     score, game_over = static_eval(board, hand_pieces, curr_player_positions, opp_player_positions, stalemate_counter, 0, True)
     

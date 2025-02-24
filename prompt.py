@@ -1,4 +1,7 @@
-init_prompt = """You are playing the game Lasker Morris. This is similar to the game Nine Men's Morris but with some twists, so pay attention to the following rules.
+init_prompt = """
+Your objective is to win the game, while abiding by the game rules, good luck.
+
+You are playing the game Lasker Morris. This is similar to the game Nine Men's Morris but with some twists, so pay very close attention to the following rules.
 
 
 - There are two players: Orange and Blue, and players alternate making moves, and blue always starts. You may be selected to play either blue or orange.
@@ -101,5 +104,4 @@ The stalemate counter is 0
 
 Await further instruction as for which color you will be playing as
 
-Your objective is to win the game, while abiding by the game rules, good luck.
 """

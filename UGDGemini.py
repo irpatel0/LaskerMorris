@@ -165,7 +165,7 @@ def parse_response(response):
         # print("Gemini did not provide a move in the correct format")
         return None
 
-#Create a move with minimax, and update the board accordingly. Deliver the move to the referee
+#Prompt a move from Gemini, and update the board accordingly. Deliver the move to the referee
 def move_update(hand, first_move):
     global stalemate_counter, opp_prev_pieces_remaining
     # Your move logic here
@@ -180,10 +180,12 @@ def move_update(hand, first_move):
                                     The stalemate counter is {stalemate_counter}""")
     else:
         response = chat.send_message(f"""It is now your move. 
-                                    Your opponent has made the move {opp_previous_move}.
-                                    Blue has {hand_pieces["blue"]} pieces in their hand
-                                    Orange has {hand_pieces["orange"]} pieces in their hand.
-                                    The stalemate counter is {stalemate_counter}""")
+                Your opponent has made the move {opp_previous_move}.
+                Blue has {hand_pieces["blue"]} pieces in their hand
+                Orange has {hand_pieces["orange"]} pieces in their hand.
+                The stalemate counter is {stalemate_counter}
+                Your pieces are in the following positions {curr_player_positions}
+                Your opponent's pieces are in the following positions {opp_player_positions}""")
 
     next_move = parse_response(response.text)
     

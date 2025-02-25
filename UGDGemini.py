@@ -8,15 +8,14 @@ import os
 import re
 
 #Initialize Gemini Chat
-#be sure to have the google-genai package installed:
-#pip install -q -U google-genai
 load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 chat = client.chats.create(model="gemini-2.0-flash")
 response = chat.send_message(init_prompt)
 
 # Global variables for the game
-board = {pos: None for pos in positions} # Create a dictionary with board positions as keys
+# Create a dictionary with board positions as keys
+board = {pos: None for pos in positions} 
 hand_pieces = {"blue": 10, "orange": 10}
 curr_player_positions = []
 opp_player_positions = []
@@ -174,7 +173,6 @@ def move_update(hand, first_move):
     global stalemate_counter, opp_prev_pieces_remaining, Timer
     #Set the time limit
     Timer = time.time() + 50
-    # Your move logic here
     time.sleep(4)
     if first_move:
         if curr_player == "blue":
@@ -198,8 +196,6 @@ def move_update(hand, first_move):
                 Your opponent's pieces are in the following positions {opp_player_positions}
                 Here are all valid moves, you MUST pick a move from this list: {generate_moves(curr_player, hand_pieces, board, curr_player_positions, opp_player_positions)}""")
 
-    # For testing purposes, force an invalid move
-    # next_move = ("invalid", "move", "test")
     next_move = parse_response(response.text)
     
     while next_move not in generate_moves(curr_player, hand_pieces, board, curr_player_positions, opp_player_positions):
@@ -208,8 +204,7 @@ def move_update(hand, first_move):
                                      Here are all valid moves: {generate_moves(curr_player, hand_pieces, board, curr_player_positions, opp_player_positions)}
                                      Carefully analyze these moves and select the best move from this list
                                      Remember that if you do not choose a move explicitly listed in this list, you will lose the game""")
-        # For testing purposes, force an invalid move
-        # next_move = ("invalid", "move", "test") 
+
         next_move = parse_response(response.text)
         
         # Check if the time limit has been reached
@@ -291,7 +286,6 @@ def main():
                 stalemate_counter = 0
                 prev_pieces_remaining = hand_pieces[curr_player] + len(curr_player_positions)
 
-            # Your move logic here
             #Check if the game is over after updating the board with opponent's move
             score, game_over = static_eval(board, hand_pieces, curr_player_positions, opp_player_positions, stalemate_counter, 0, True)
             move_update(hand, first_move)
@@ -304,5 +298,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# Testing

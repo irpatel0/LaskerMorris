@@ -30,9 +30,7 @@ stalemate_counter = 0
 opp_prev_pieces_remaining = 10
 prev_pieces_remaining = 10
 
-#Create time-limit variable and time tracker
-TIME_LIMIT = 5
-TIME_LIMIT_SAFETY = TIME_LIMIT - 0.25
+#Create time tracker
 Timer = None
 
 #Utility function to evaluate the game state and determine if the game is over
@@ -155,12 +153,16 @@ def valid_removals(opponent, board, opp_positions):
 def list_to_command(move):
     return f"{move[0]} {move[1]} {move[2]}"
 
+#Parse the response from Gemini to extract the move in the correct format
 def parse_response(response):
     response = response.replace("'", "")
+    #Extracts all substrings surrounded by parentheses
     matches = re.findall(r"\([^()]*\)", response, flags=re.DOTALL)
 
     if matches:
+        #Extract the last substring in the list of matches
         last_match = matches[-1][1:-1]
+        #Correct the formatting of the move
         move = tuple(p.strip() for p in last_match.split(','))
         return move
     else:

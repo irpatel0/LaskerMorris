@@ -169,7 +169,9 @@ def parse_response(response):
 
 #Prompt a move from Gemini, and update the board accordingly. Deliver the move to the referee
 def move_update(hand, first_move):
-    global stalemate_counter, opp_prev_pieces_remaining
+    global stalemate_counter, opp_prev_pieces_remaining, Timer
+    #Set the time limit
+    Timer = time.time() + 50
     # Your move logic here
     time.sleep(4)
     if first_move:
@@ -194,6 +196,8 @@ def move_update(hand, first_move):
                 Your opponent's pieces are in the following positions {opp_player_positions}
                 Here are all valid moves, you MUST pick a move from this list: {generate_moves(curr_player, hand_pieces, board, curr_player_positions, opp_player_positions)}""")
 
+    # For testing purposes, force an invalid move
+    # next_move = ("invalid", "move", "test")
     next_move = parse_response(response.text)
 
     while next_move not in generate_moves(curr_player, hand_pieces, board, curr_player_positions, opp_player_positions):
@@ -202,21 +206,14 @@ def move_update(hand, first_move):
                                      Here are all valid moves: {generate_moves(curr_player, hand_pieces, board, curr_player_positions, opp_player_positions)}
                                      Carefully analyze these moves and select the best move from this list
                                      Remember that if you do not choose a move explicitly listed in this list, you will lose the game""")
+        # For testing purposes, force an invalid move
+        # next_move = ("invalid", "move", "test") 
         next_move = parse_response(response.text)
+        if time.time() > Timer:
+            break;    
     
-    #TODO: Implement validation of the AI, continues to try and remove opponent's stones without forming a mill
-    # Ways to incorrectly make a move:
-    # IMPRORTANT: If any invalid move is made, you will lose the game. Here are examples of invalid moves
-    # Moving stones from your hand, when there are no stones in your hand
-    # Moves that remove an opponent's stone when your pieces have not formed a mill during that turn
-    # Moves that remove an opponent's stone that is in a mill, when there are opponent stone's that are not in a mill
-    # Moves that place a stone on an occupied position
-    # Moves that place a stone on an invalid board point (e.g., b5)
-    # valid_move = tuple(next_move)
-    # if valid_move not in generate_moves(other_player, hand_pieces, board, opp_player_positions, curr_player_positions):
-    #     chat.send_message(f"You played an invalid move ({response})!")
-    #     move_update(hand, first_move)
-    
+    if time.time() > Timer:
+        next_move = generate_moves(curr_player, hand_pieces, board, curr_player_positions, opp_player_positions)[0]
     
     # Update board with move
     board[next_move[1]] = curr_player

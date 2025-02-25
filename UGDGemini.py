@@ -155,6 +155,7 @@ def list_to_command(move):
     return f"{move[0]} {move[1]} {move[2]}"
 
 def parse_response(response):
+    response = response.replace("'", "")
     matches = re.findall(r"\([^()]*\)", response, flags=re.DOTALL)
 
     if matches:
@@ -169,15 +170,18 @@ def parse_response(response):
 def move_update(hand, first_move):
     global stalemate_counter, opp_prev_pieces_remaining
     # Your move logic here
+    time.sleep(4)
     if first_move:
         if curr_player == "blue":
-            response = chat.send_message("You are playing as blue, make the first move!")
+            response = chat.send_message(f"""You are playing as blue, make the first move!"
+                                        Here are all valid moves, you must pick a move from this list: {generate_moves(curr_player, hand_pieces, board, curr_player_positions, opp_player_positions)}""")
         if curr_player == "orange":
             response = chat.send_message(f"""You are playing as orange. 
                                     Your opponent has made the first move {opp_previous_move}.
                                     Blue has {hand_pieces["blue"]} pieces in their hand
                                     Orange has {hand_pieces["orange"]} pieces in their hand.
-                                    The stalemate counter is {stalemate_counter}""")
+                                    The stalemate counter is {stalemate_counter}
+                                    Here are all valid moves, you must pick a move from this list: {generate_moves(curr_player, hand_pieces, board, curr_player_positions, opp_player_positions)}""")
     else:
         response = chat.send_message(f"""It is now your move. 
                 Your opponent has made the move {opp_previous_move}.
@@ -185,7 +189,8 @@ def move_update(hand, first_move):
                 Orange has {hand_pieces["orange"]} pieces in their hand.
                 The stalemate counter is {stalemate_counter}
                 Your pieces are in the following positions {curr_player_positions}
-                Your opponent's pieces are in the following positions {opp_player_positions}""")
+                Your opponent's pieces are in the following positions {opp_player_positions}
+                Here are all valid moves, you MUST pick a move from this list: {generate_moves(curr_player, hand_pieces, board, curr_player_positions, opp_player_positions)}""")
 
     next_move = parse_response(response.text)
     

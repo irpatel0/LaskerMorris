@@ -99,8 +99,13 @@ Opponent (Orange), made the move (g4, f4, d1)
 
 Blue has 5 pieces in their hand
 Orange has 6 pieces in their hand
-
 The stalemate counter is 0
+Your pieces are in the following positions: ["a1", "d1", "g1"]
+Your opponent's pieces are in the following positions: ["g4", "f4", "d1"]
+
+You will then be given a list of all possible moves you can make. Analyze the effectiveness of each move, and then select a move from the list.
+
+IMPORTANT: If you make a move thay is not explicitly listed, you will lose the game. Ensure that the move you make is in the list of possible moves. 
 
 Await further instruction as for which color you will be playing as
 

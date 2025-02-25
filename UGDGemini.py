@@ -199,7 +199,7 @@ def move_update(hand, first_move):
     # For testing purposes, force an invalid move
     # next_move = ("invalid", "move", "test")
     next_move = parse_response(response.text)
-
+    
     while next_move not in generate_moves(curr_player, hand_pieces, board, curr_player_positions, opp_player_positions):
         time.sleep(5)
         response = chat.send_message(f"""You played an invalid move. Please try again. 
@@ -209,9 +209,12 @@ def move_update(hand, first_move):
         # For testing purposes, force an invalid move
         # next_move = ("invalid", "move", "test") 
         next_move = parse_response(response.text)
+        
+        # Check if the time limit has been reached
         if time.time() > Timer:
             break;    
     
+    # If the time limit has been reached, select the first move in the list
     if time.time() > Timer:
         next_move = generate_moves(curr_player, hand_pieces, board, curr_player_positions, opp_player_positions)[0]
     

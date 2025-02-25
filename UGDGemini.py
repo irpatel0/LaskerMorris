@@ -1,4 +1,5 @@
 #imports
+import time
 from constants import positions, mills, neighbors
 from prompt import init_prompt
 from google import genai
@@ -194,6 +195,14 @@ def move_update(hand, first_move):
                 Here are all valid moves, you MUST pick a move from this list: {generate_moves(curr_player, hand_pieces, board, curr_player_positions, opp_player_positions)}""")
 
     next_move = parse_response(response.text)
+
+    while next_move not in generate_moves(curr_player, hand_pieces, board, curr_player_positions, opp_player_positions):
+        time.sleep(5)
+        response = chat.send_message(f"""You played an invalid move. Please try again. 
+                                     Here are all valid moves: {generate_moves(curr_player, hand_pieces, board, curr_player_positions, opp_player_positions)}
+                                     Carefully analyze these moves and select the best move from this list
+                                     Remember that if you do not choose a move explicitly listed in this list, you will lose the game""")
+        next_move = parse_response(response.text)
     
     #TODO: Implement validation of the AI, continues to try and remove opponent's stones without forming a mill
     # Ways to incorrectly make a move:
@@ -203,10 +212,10 @@ def move_update(hand, first_move):
     # Moves that remove an opponent's stone that is in a mill, when there are opponent stone's that are not in a mill
     # Moves that place a stone on an occupied position
     # Moves that place a stone on an invalid board point (e.g., b5)
-    valid_move = tuple(next_move)
-    if valid_move not in generate_moves(other_player, hand_pieces, board, opp_player_positions, curr_player_positions):
-        chat.send_message(f"You played an invalid move ({response})!")
-        move_update(hand, first_move)
+    # valid_move = tuple(next_move)
+    # if valid_move not in generate_moves(other_player, hand_pieces, board, opp_player_positions, curr_player_positions):
+    #     chat.send_message(f"You played an invalid move ({response})!")
+    #     move_update(hand, first_move)
     
     
     # Update board with move

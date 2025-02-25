@@ -1,5 +1,4 @@
 #imports
-import time
 from constants import positions, mills, neighbors
 from prompt import init_prompt
 from google import genai
@@ -8,6 +7,8 @@ import os
 import re
 
 #Initialize Gemini Chat
+#be sure to have the google-genai package installed:
+#pip install -q -U google-genai
 load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 chat = client.chats.create(model="gemini-2.0-flash")
@@ -145,9 +146,8 @@ def valid_removals(opponent, board, opp_positions):
         if not mill_formed(opponent, pos, board):
             opp_not_mill.append(pos)
 
-    #If all pieces are in mills, any piece can be removed
-    if len(opp_not_mill) == 0:
-        return opp_positions
+    #If all pieces are in mills, any piece canbe removed
+    if len(opp_not_mill) == 0:        return opp_positions
     return opp_not_mill
 
 #Turn a move list into a string the referee can understand
@@ -186,6 +186,20 @@ def move_update(hand, first_move):
                                     The stalemate counter is {stalemate_counter}""")
 
     next_move = parse_response(response.text)
+    
+    #TODO: Implement validation of the AI, continues to try and remove opponent's stones without forming a mill
+    # Ways to incorrectly make a move:
+    # IMPRORTANT: If any invalid move is made, you will lose the game. Here are examples of invalid moves
+    # Moving stones from your hand, when there are no stones in your hand
+    # Moves that remove an opponent's stone when your pieces have not formed a mill during that turn
+    # Moves that remove an opponent's stone that is in a mill, when there are opponent stone's that are not in a mill
+    # Moves that place a stone on an occupied position
+    # Moves that place a stone on an invalid board point (e.g., b5)
+    valid_move = tuple(next_move)
+    if valid_move not in generate_moves(other_player, hand_pieces, board, opp_player_positions, curr_player_positions):
+        chat.send_message(f"You played an invalid move ({response})!")
+        move_update(hand, first_move)
+    
     
     # Update board with move
     board[next_move[1]] = curr_player

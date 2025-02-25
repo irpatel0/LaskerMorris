@@ -179,6 +179,7 @@ def move_update(hand, first_move):
                                     Orange has {hand_pieces["orange"]} pieces in their hand.
                                     The stalemate counter is {stalemate_counter}""")
     else:
+        time.sleep(5)
         response = chat.send_message(f"""It is now your move. 
                 Your opponent has made the move {opp_previous_move}.
                 Blue has {hand_pieces["blue"]} pieces in their hand

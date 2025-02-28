@@ -245,7 +245,7 @@ def mill_formed(player, pos, board) -> bool:
                 return True
     return False
 
-#Check if a mill is formed at a position
+#Checks how many mills are one away from being formed
 def partial_mill_formed(player, opp, board):
     num_mills = 0
     for mill in mills:

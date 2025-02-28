@@ -175,6 +175,7 @@ def heuristic_eval(board, pieces, curr_pos, opp_pos):
     score -= len(generate_moves(other_player, pieces, board, opp_pos, curr_pos))
     score += 2 * partial_mill_formed(curr_player, other_player, board)
     score -= 2 * partial_mill_formed(other_player, curr_player, board)
+    score += pieces[curr_player] - pieces[other_player]
     return score
 
 #Determine if any moves are possible for a player
